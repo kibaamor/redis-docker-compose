@@ -19,7 +19,7 @@ x-redis-node: &redis-node
     --cluster-node-timeout 5000
     --appendonly ${REDIS_APPENDONLY:-no}
     --appendfsync ${REDIS_APPENDFSYNC:-everysec}
-    --save ${REDIS_SAVE:-"900 1 300 10 60 10000"}
+    --save ${REDIS_SAVE:-900 1 300 10 60 10000}
     --maxmemory ${REDIS_MAXMEMORY:-256mb}
     --maxmemory-policy ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
     --port 6379
@@ -33,7 +33,7 @@ x-redis-node: &redis-node
     resources:
       limits:
         cpus: "${REDIS_CPU_LIMIT:-1.0}"
-        memory: ${REDIS_MEMORY_LIMIT:-512M}
+        memory: "${REDIS_MEMORY_LIMIT:-512M}"
 
 services:
   redis-node-1:
@@ -78,7 +78,7 @@ services:
     volumes:
       - redis_node_6_data:/data
 
-  cluster-init:
+  redis-cluster-init:
     <<: *base
     image: "redis:${REDIS_VERSION:-latest}"
     restart: on-failure
@@ -115,11 +115,6 @@ services:
         condition: service_healthy
       redis-node-6:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 128M
 
   redis-commander:
     <<: *base
@@ -132,13 +127,13 @@ services:
     ports:
       - "${REDIS_COMMANDER_PORT:-18081}:8081"
     depends_on:
-      cluster-init:
+      redis-cluster-init:
         condition: service_completed_successfully
     deploy:
       resources:
         limits:
           cpus: "${REDIS_COMMANDER_CPU_LIMIT:-0.5}"
-          memory: ${REDIS_COMMANDER_MEMORY_LIMIT:-256M}
+          memory: "${REDIS_COMMANDER_MEMORY_LIMIT:-256M}"
 
 volumes:
   redis_node_1_data:

@@ -1,6 +1,6 @@
-# Redis Cluster Docker Setup
+# Redis Cluster with Docker Compose
 
-This project provides a Redis cluster environment based on Docker Compose, including 6 Redis nodes (3 masters + 3 replicas) and Redis Commander web interface.
+A Redis cluster deployment using Docker Compose, including 6 Redis nodes (3 masters + 3 replicas) and Redis Commander web interface.
 
 ## Features
 
@@ -206,3 +206,7 @@ docker compose logs redis-node-1
 ## License
 
 MIT License
+
+## Contributing
+
+Feel free to submit issues and enhancement requests!
