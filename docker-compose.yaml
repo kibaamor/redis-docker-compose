@@ -1,0 +1,149 @@
+x-base: &base
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "${MAX_LOG_FILE_SIZE:-10m}"
+      max-file: "${MAX_LOG_FILE_COUNT:-3}"
+      tag: "{{.Name}}|{{.ImageName}}|{{.ID}}"
+
+x-redis-node: &redis-node
+  <<: *base
+  image: "redis:${REDIS_VERSION:-latest}"
+  restart: unless-stopped
+  command: >
+    redis-server
+    --cluster-enabled yes
+    --cluster-config-file nodes.conf
+    --cluster-node-timeout 5000
+    --appendonly ${REDIS_APPENDONLY:-no}
+    --appendfsync ${REDIS_APPENDFSYNC:-everysec}
+    --save ${REDIS_SAVE:-"900 1 300 10 60 10000"}
+    --maxmemory ${REDIS_MAXMEMORY:-256mb}
+    --maxmemory-policy ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
+    --port 6379
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 5s
+    timeout: 3s
+    retries: 10
+    start_period: 5s
+  deploy:
+    resources:
+      limits:
+        cpus: "${REDIS_CPU_LIMIT:-1.0}"
+        memory: ${REDIS_MEMORY_LIMIT:-512M}
+
+services:
+  redis-node-1:
+    <<: *redis-node
+    ports:
+      - "7001:6379"
+    volumes:
+      - redis_node_1_data:/data
+
+  redis-node-2:
+    <<: *redis-node
+    ports:
+      - "7002:6379"
+    volumes:
+      - redis_node_2_data:/data
+
+  redis-node-3:
+    <<: *redis-node
+    ports:
+      - "7003:6379"
+    volumes:
+      - redis_node_3_data:/data
+
+  redis-node-4:
+    <<: *redis-node
+    ports:
+      - "7004:6379"
+    volumes:
+      - redis_node_4_data:/data
+
+  redis-node-5:
+    <<: *redis-node
+    ports:
+      - "7005:6379"
+    volumes:
+      - redis_node_5_data:/data
+
+  redis-node-6:
+    <<: *redis-node
+    ports:
+      - "7006:6379"
+    volumes:
+      - redis_node_6_data:/data
+
+  cluster-init:
+    <<: *base
+    image: "redis:${REDIS_VERSION:-latest}"
+    restart: on-failure
+    command: >
+      sh -c "until
+        redis-cli -h redis-node-1 -p 6379 ping > /dev/null 2>&1 &&
+        redis-cli -h redis-node-2 -p 6379 ping > /dev/null 2>&1 &&
+        redis-cli -h redis-node-3 -p 6379 ping > /dev/null 2>&1 &&
+        redis-cli -h redis-node-4 -p 6379 ping > /dev/null 2>&1 &&
+        redis-cli -h redis-node-5 -p 6379 ping > /dev/null 2>&1 &&
+        redis-cli -h redis-node-6 -p 6379 ping > /dev/null 2>&1;
+      do
+        echo 'Waiting for nodes...';
+        sleep 1;
+      done &&
+      CLUSTER_STATE=\$$(redis-cli -h redis-node-1 cluster info | grep cluster_state | cut -d: -f2 | tr -d '\\r') &&
+      if [ \"\$$CLUSTER_STATE\" = \"ok\" ]; then
+        echo 'Cluster already exists';
+      else
+        echo 'Creating cluster...';
+        redis-cli --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 redis-node-4:6379 redis-node-5:6379 redis-node-6:6379 --cluster-replicas 1 --cluster-yes;
+      fi &&
+      redis-cli -h redis-node-1 -p 6379 cluster info | grep cluster_state:ok"
+    depends_on:
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-node-3:
+        condition: service_healthy
+      redis-node-4:
+        condition: service_healthy
+      redis-node-5:
+        condition: service_healthy
+      redis-node-6:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+  redis-commander:
+    <<: *base
+    image: ghcr.io/joeferner/redis-commander:${REDIS_COMMANDER_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      REDIS_LABEL: redis-cluster
+      CLUSTERS: redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379,redis-node-6:6379
+      IS_CLUSTER: true
+    ports:
+      - "${REDIS_COMMANDER_PORT:-18081}:8081"
+    depends_on:
+      cluster-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "${REDIS_COMMANDER_CPU_LIMIT:-0.5}"
+          memory: ${REDIS_COMMANDER_MEMORY_LIMIT:-256M}
+
+volumes:
+  redis_node_1_data:
+  redis_node_2_data:
+  redis_node_3_data:
+  redis_node_4_data:
+  redis_node_5_data:
+  redis_node_6_data:
