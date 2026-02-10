@@ -47,49 +47,49 @@ x-redis-node: &redis-node
 services:
   redis-node-1:
     <<: *redis-node
-    command: ["--port", "7001"]
+    command: ["--port", "${REDIS_PORT_1:-7001}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7001", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_1:-7001}", "ping"]
     volumes:
       - redis_node_1_data:/data
 
   redis-node-2:
     <<: *redis-node
-    command: ["--port", "7002"]
+    command: ["--port", "${REDIS_PORT_2:-7002}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7002", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_2:-7002}", "ping"]
     volumes:
       - redis_node_2_data:/data
 
   redis-node-3:
     <<: *redis-node
-    command: ["--port", "7003"]
+    command: ["--port", "${REDIS_PORT_3:-7003}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7003", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_3:-7003}", "ping"]
     volumes:
       - redis_node_3_data:/data
 
   redis-node-4:
     <<: *redis-node
-    command: ["--port", "7004"]
+    command: ["--port", "${REDIS_PORT_4:-7004}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7004", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_4:-7004}", "ping"]
     volumes:
       - redis_node_4_data:/data
 
   redis-node-5:
     <<: *redis-node
-    command: ["--port", "7005"]
+    command: ["--port", "${REDIS_PORT_5:-7005}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7005", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_5:-7005}", "ping"]
     volumes:
       - redis_node_5_data:/data
 
   redis-node-6:
     <<: *redis-node
-    command: ["--port", "7006"]
+    command: ["--port", "${REDIS_PORT_6:-7006}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "7006", "ping"]
+      test: ["CMD", "redis-cli", "-p", "${REDIS_PORT_6:-7006}", "ping"]
     volumes:
       - redis_node_6_data:/data
 
@@ -97,24 +97,27 @@ services:
     <<: *base
     image: "redis:${REDIS_VERSION:-latest}"
     restart: on-failure
-    command: >
+    command: |
       sh -c "until
-        redis-cli -p 7001 ping > /dev/null 2>&1 &&
-        redis-cli -p 7002 ping > /dev/null 2>&1 &&
-        redis-cli -p 7003 ping > /dev/null 2>&1 &&
-        redis-cli -p 7004 ping > /dev/null 2>&1 &&
-        redis-cli -p 7005 ping > /dev/null 2>&1 &&
-        redis-cli -p 7006 ping > /dev/null 2>&1;
+        redis-cli -p ${REDIS_PORT_1:-7001} ping > /dev/null 2>&1 &&
+        redis-cli -p ${REDIS_PORT_2:-7002} ping > /dev/null 2>&1 &&
+        redis-cli -p ${REDIS_PORT_3:-7003} ping > /dev/null 2>&1 &&
+        redis-cli -p ${REDIS_PORT_4:-7004} ping > /dev/null 2>&1 &&
+        redis-cli -p ${REDIS_PORT_5:-7005} ping > /dev/null 2>&1 &&
+        redis-cli -p ${REDIS_PORT_6:-7006} ping > /dev/null 2>&1;
       do
-        echo 'Waiting for nodes...';
-        sleep 1;
-      done &&
-      CLUSTER_STATE=\$$(redis-cli -p 7001 cluster info | grep cluster_state | cut -d: -f2 | tr -d '\\r') &&
+        echo 'Waiting for nodes...'
+        sleep 1
+      done
+      CLUSTER_STATE=\$$(redis-cli -p ${REDIS_PORT_1:-7001} cluster info | grep cluster_state | cut -d: -f2 | tr -d '\\r')
       if [ \"\$$CLUSTER_STATE\" = \"ok\" ]; then
-        echo 'Cluster already exists';
+        echo 'Cluster already exists'
       else
-        echo 'Creating cluster...';
-        redis-cli --cluster create 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006 --cluster-replicas 1 --cluster-yes;
+        echo 'Creating cluster...'
+        redis-cli --cluster create \\
+          127.0.0.1:${REDIS_PORT_1:-7001} 127.0.0.1:${REDIS_PORT_2:-7002} 127.0.0.1:${REDIS_PORT_3:-7003} \\
+          127.0.0.1:${REDIS_PORT_4:-7004} 127.0.0.1:${REDIS_PORT_5:-7005} 127.0.0.1:${REDIS_PORT_6:-7006} \\
+          --cluster-replicas 1 --cluster-yes
       fi"
     depends_on:
       redis-node-1:
@@ -138,7 +141,7 @@ services:
       ADDRESS: "${REDIS_COMMANDER_BIND_ADDRESS:-127.0.0.1}"
       PORT: "${REDIS_COMMANDER_PORT:-18081}"
       REDIS_LABEL: redis-cluster
-      CLUSTERS: 127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
+      CLUSTERS: 127.0.0.1:${REDIS_PORT_1:-7001},127.0.0.1:${REDIS_PORT_2:-7002},127.0.0.1:${REDIS_PORT_3:-7003},127.0.0.1:${REDIS_PORT_4:-7004},127.0.0.1:${REDIS_PORT_5:-7005},127.0.0.1:${REDIS_PORT_6:-7006}
       IS_CLUSTER: true
     depends_on:
       redis-cluster-init:

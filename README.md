@@ -16,14 +16,14 @@ A Redis cluster deployment using Docker Compose, including 6 Redis nodes (3 mast
 
 ### Redis Nodes
 
-- **redis-node-1**: port 7001
-- **redis-node-2**: port 7002
-- **redis-node-3**: port 7003
-- **redis-node-4**: port 7004
-- **redis-node-5**: port 7005
-- **redis-node-6**: port 7006
+- **redis-node-1**: port 7001 (configurable via `REDIS_PORT_1`)
+- **redis-node-2**: port 7002 (configurable via `REDIS_PORT_2`)
+- **redis-node-3**: port 7003 (configurable via `REDIS_PORT_3`)
+- **redis-node-4**: port 7004 (configurable via `REDIS_PORT_4`)
+- **redis-node-5**: port 7005 (configurable via `REDIS_PORT_5`)
+- **redis-node-6**: port 7006 (configurable via `REDIS_PORT_6`)
 
-**Note**: This setup uses host networking mode, so Redis nodes bind directly to the host's network interface on ports 7001-7006.
+**Note**: This setup uses host networking mode, so Redis nodes bind directly to the host's network interface. Default ports are 7001-7006, but can be customized via environment variables.
 
 ### Cluster Topology
 
@@ -75,6 +75,12 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | --------- | ----- | ------ |
 | `REDIS_VERSION` | `latest` | Redis image version |
 | `REDIS_BIND_ADDRESS` | `127.0.0.1` | Network interface to bind to |
+| `REDIS_PORT_1` | `7001` | Port for Redis node 1 |
+| `REDIS_PORT_2` | `7002` | Port for Redis node 2 |
+| `REDIS_PORT_3` | `7003` | Port for Redis node 3 |
+| `REDIS_PORT_4` | `7004` | Port for Redis node 4 |
+| `REDIS_PORT_5` | `7005` | Port for Redis node 5 |
+| `REDIS_PORT_6` | `7006` | Port for Redis node 6 |
 | `REDIS_APPENDONLY` | `no` | Enable AOF persistence |
 | `REDIS_APPENDFSYNC` | `everysec` | AOF sync strategy (always/everysec/no) |
 | `REDIS_SAVE` | `"900 1 300 10 60 10000"` | RDB save strategy |
