@@ -74,7 +74,7 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | Environment Variable | Default Value | Description |
 | --------- | ----- | ------ |
 | `REDIS_VERSION` | `latest` | Redis image version |
-| `REDIS_BIND_ADDRESS` | `0.0.0.0` | Network interface to bind to |
+| `REDIS_BIND_ADDRESS` | `127.0.0.1` | Network interface to bind to |
 | `REDIS_APPENDONLY` | `no` | Enable AOF persistence |
 | `REDIS_APPENDFSYNC` | `everysec` | AOF sync strategy (always/everysec/no) |
 | `REDIS_SAVE` | `"900 1 300 10 60 10000"` | RDB save strategy |
@@ -88,7 +88,7 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | Environment Variable | Default Value | Description |
 | --------- | ----- | ------ |
 | `REDIS_COMMANDER_VERSION` | `latest` | Redis Commander version |
-| `REDIS_COMMANDER_BIND_ADDRESS` | `0.0.0.0` | Network interface to bind to |
+| `REDIS_COMMANDER_BIND_ADDRESS` | `127.0.0.1` | Network interface to bind to |
 | `REDIS_COMMANDER_PORT` | `18081` | Web interface access port |
 | `REDIS_COMMANDER_CPU_LIMIT` | `0.5` | CPU limit |
 | `REDIS_COMMANDER_MEMORY_LIMIT` | `256M` | Memory limit |

@@ -16,7 +16,7 @@ x-redis-node: &redis-node
   entrypoint:
     - /usr/local/bin/redis-server
     - --bind
-    - "${REDIS_BIND_ADDRESS:-0.0.0.0}"
+    - "${REDIS_BIND_ADDRESS:-127.0.0.1}"
     - --cluster-enabled
     - "yes"
     - --cluster-config-file
@@ -135,7 +135,7 @@ services:
     image: ghcr.io/joeferner/redis-commander:${REDIS_COMMANDER_VERSION:-latest}
     restart: unless-stopped
     environment:
-      ADDRESS: "${REDIS_COMMANDER_BIND_ADDRESS:-0.0.0.0}"
+      ADDRESS: "${REDIS_COMMANDER_BIND_ADDRESS:-127.0.0.1}"
       PORT: "${REDIS_COMMANDER_PORT:-18081}"
       REDIS_LABEL: redis-cluster
       CLUSTERS: 127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
