@@ -16,12 +16,14 @@ A Redis cluster deployment using Docker Compose, including 6 Redis nodes (3 mast
 
 ### Redis Nodes
 
-- **redis-node-1**: port 7001 → 6379
-- **redis-node-2**: port 7002 → 6379
-- **redis-node-3**: port 7003 → 6379
-- **redis-node-4**: port 7004 → 6379
-- **redis-node-5**: port 7005 → 6379
-- **redis-node-6**: port 7006 → 6379
+- **redis-node-1**: port 7001
+- **redis-node-2**: port 7002
+- **redis-node-3**: port 7003
+- **redis-node-4**: port 7004
+- **redis-node-5**: port 7005
+- **redis-node-6**: port 7006
+
+**Note**: This setup uses host networking mode, so Redis nodes bind directly to the host's network interface on ports 7001-7006.
 
 ### Cluster Topology
 
@@ -72,9 +74,10 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | Environment Variable | Default Value | Description |
 | --------- | ----- | ------ |
 | `REDIS_VERSION` | `latest` | Redis image version |
+| `REDIS_BIND_ADDRESS` | `0.0.0.0` | Network interface to bind to |
 | `REDIS_APPENDONLY` | `no` | Enable AOF persistence |
 | `REDIS_APPENDFSYNC` | `everysec` | AOF sync strategy (always/everysec/no) |
-| `REDIS_SAVE` | `900 1 300 10 60 10000` | RDB save strategy |
+| `REDIS_SAVE` | `"900 1 300 10 60 10000"` | RDB save strategy |
 | `REDIS_MAXMEMORY` | `256mb` | Maximum memory limit |
 | `REDIS_MAXMEMORY_POLICY` | `allkeys-lru` | Memory eviction policy |
 | `REDIS_CPU_LIMIT` | `1.0` | CPU limit |
@@ -85,6 +88,7 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | Environment Variable | Default Value | Description |
 | --------- | ----- | ------ |
 | `REDIS_COMMANDER_VERSION` | `latest` | Redis Commander version |
+| `REDIS_COMMANDER_BIND_ADDRESS` | `0.0.0.0` | Network interface to bind to |
 | `REDIS_COMMANDER_PORT` | `18081` | Web interface access port |
 | `REDIS_COMMANDER_CPU_LIMIT` | `0.5` | CPU limit |
 | `REDIS_COMMANDER_MEMORY_LIMIT` | `256M` | Memory limit |
