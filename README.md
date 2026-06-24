@@ -1,20 +1,34 @@
-# Redis Cluster with Docker Compose
+# Redis with Docker Compose
 
-A Redis cluster deployment using Docker Compose, including 6 Redis nodes (3 masters + 3 replicas) and Redis Commander web interface.
+Two Redis deployment modes using Docker Compose:
+
+- **Cluster mode** (`docker-compose.cluster.yaml`): 6-node Redis cluster (3 masters + 3 replicas) with automatic initialization
+- **Single instance** (`docker-compose.single.yaml`): Standalone Redis with Redis Commander web interface
 
 ## Features
 
-- ✅ 6-node Redis cluster (3 master nodes + 3 replica nodes)
-- ✅ Automatic cluster initialization
+- ✅ 6-node Redis cluster (3 master nodes + 3 replica nodes) — cluster mode
+- ✅ Single Redis instance with Redis Commander — standalone mode
+- ✅ Automatic cluster initialization (cluster mode)
 - ✅ Redis Commander web management interface
 - ✅ Data persistence
 - ✅ Health checks
 - ✅ Resource limit configuration
 - ✅ Log rotation configuration
+- ✅ Configurable bind address via `${REDIS_BIND_ADDRESS}`
 
 ## Architecture
 
-### Redis Nodes
+### Deployment Modes
+
+| Mode | Compose File | Description |
+| ---- | ------------ | ----------- |
+| Cluster | `docker-compose.cluster.yaml` | 6-node Redis cluster with automatic initialization |
+| Single | `docker-compose.single.yaml` | Standalone Redis instance with Redis Commander |
+
+### Cluster Mode
+
+#### Redis Nodes
 
 - **redis-node-1**: port 7001 (configurable via `REDIS_PORT_1`)
 - **redis-node-2**: port 7002 (configurable via `REDIS_PORT_2`)
@@ -23,20 +37,26 @@ A Redis cluster deployment using Docker Compose, including 6 Redis nodes (3 mast
 - **redis-node-5**: port 7005 (configurable via `REDIS_PORT_5`)
 - **redis-node-6**: port 7006 (configurable via `REDIS_PORT_6`)
 
-**Note**: This setup uses host networking mode, so Redis nodes bind directly to the host's network interface. Default ports are 7001-7006, but can be customized via environment variables.
+**Note**: This setup uses host networking mode, so Redis nodes bind directly to the host's network interface. Default ports are 7001-7006, but can be customized via environment variables. The bind address is configurable via `REDIS_BIND_ADDRESS` (default: `127.0.0.1`).
 
-### Cluster Topology
+#### Cluster Topology
 
 The cluster uses `--cluster-replicas 1` configuration, which means:
 
 - 3 master nodes
 - 3 replica nodes, each master has 1 replica
 
-### Redis Commander
+### Single Instance Mode
 
-- Web management interface, default port: `18081`
-- Visual management of all cluster nodes
-- Cluster mode support
+#### Redis
+
+- Single Redis server, default port: `6379` (configurable via `REDIS_PORT`)
+
+#### Redis Commander (both modes)
+
+- Web management interface, default port: `8081`
+- Visual management of all Redis nodes
+- Cluster mode support (cluster mode) or single host mode (standalone mode)
 
 ## Quick Start
 
@@ -45,21 +65,48 @@ The cluster uses `--cluster-replicas 1` configuration, which means:
 - Docker
 - Docker Compose
 
-### Start the Cluster
+### Choose Deployment Mode
+
+Select the compose file that matches your needs, then symlink it to `docker-compose.yaml` so you can use `docker compose` without `-f` flags:
+
+```bash
+# For cluster mode (recommended if you need sharding and failover)
+ln -sf docker-compose.cluster.yaml docker-compose.yaml
+
+# For single instance mode (simpler, no clustering overhead)
+ln -sf docker-compose.single.yaml docker-compose.yaml
+```
+
+### Configure
 
 1. Copy the environment variable file (optional): `cp .env.example .env`
 2. Modify the configuration in the `.env` file as needed
-3. Start the services: `docker compose up -d`
-4. Check cluster status: `docker compose logs -f cluster-init`
-5. Access Redis Commander: <http://localhost:18081>
 
-### Stop the Cluster
+### Start
+
+```bash
+docker compose up -d
+```
+
+### Verify
+
+```bash
+# Cluster mode: check cluster initialization status
+docker compose logs -f cluster-init
+
+# Single mode: check if Redis is running
+docker compose logs -f redis
+```
+
+Access Redis Commander at <http://localhost:8081>.
+
+### Stop
 
 ```bash
 docker compose down
 ```
 
-### Stop the Cluster and Remove Data
+### Stop and Remove Data
 
 ```bash
 docker compose down -v
@@ -75,12 +122,13 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | --------- | ----- | ------ |
 | `REDIS_VERSION` | `latest` | Redis image version |
 | `REDIS_BIND_ADDRESS` | `127.0.0.1` | Network interface to bind to |
-| `REDIS_PORT_1` | `7001` | Port for Redis node 1 |
-| `REDIS_PORT_2` | `7002` | Port for Redis node 2 |
-| `REDIS_PORT_3` | `7003` | Port for Redis node 3 |
-| `REDIS_PORT_4` | `7004` | Port for Redis node 4 |
-| `REDIS_PORT_5` | `7005` | Port for Redis node 5 |
-| `REDIS_PORT_6` | `7006` | Port for Redis node 6 |
+| `REDIS_PORT_1` | `7001` | Port for Redis node 1 (cluster mode) |
+| `REDIS_PORT_2` | `7002` | Port for Redis node 2 (cluster mode) |
+| `REDIS_PORT_3` | `7003` | Port for Redis node 3 (cluster mode) |
+| `REDIS_PORT_4` | `7004` | Port for Redis node 4 (cluster mode) |
+| `REDIS_PORT_5` | `7005` | Port for Redis node 5 (cluster mode) |
+| `REDIS_PORT_6` | `7006` | Port for Redis node 6 (cluster mode) |
+| `REDIS_PORT` | `6379` | Port for Redis instance (single mode) |
 | `REDIS_APPENDONLY` | `no` | Enable AOF persistence |
 | `REDIS_APPENDFSYNC` | `everysec` | AOF sync strategy (always/everysec/no) |
 | `REDIS_SAVE` | `"900 1 300 10 60 10000"` | RDB save strategy |
@@ -95,7 +143,7 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 | --------- | ----- | ------ |
 | `REDIS_COMMANDER_VERSION` | `latest` | Redis Commander version |
 | `REDIS_COMMANDER_BIND_ADDRESS` | `127.0.0.1` | Network interface to bind to |
-| `REDIS_COMMANDER_PORT` | `18081` | Web interface access port |
+| `REDIS_COMMANDER_PORT` | `8081` | Web interface access port |
 | `REDIS_COMMANDER_CPU_LIMIT` | `0.5` | CPU limit |
 | `REDIS_COMMANDER_MEMORY_LIMIT` | `256M` | Memory limit |
 
@@ -108,7 +156,7 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 
 ## Common Commands
 
-### Connect to Redis Nodes
+### Connect to Redis (Cluster Mode)
 
 ```bash
 # Connect to node 1
@@ -121,7 +169,14 @@ docker exec -it redis-redis-node-1-1 redis-cli cluster info
 docker exec -it redis-redis-node-1-1 redis-cli cluster nodes
 ```
 
-### Test the Cluster
+### Connect to Redis (Single Instance Mode)
+
+```bash
+# Connect to Redis
+docker exec -it redis-redis-1 redis-cli
+```
+
+### Test the Cluster (Cluster Mode)
 
 ```bash
 # Set key-value
@@ -143,7 +198,7 @@ docker compose ps
 # View service logs
 docker compose logs -f
 
-# View specific service logs
+# View specific service logs (cluster mode)
 docker compose logs -f redis-node-1
 
 # View resource usage
@@ -151,6 +206,8 @@ docker stats
 ```
 
 ## Data Persistence
+
+### Cluster Mode
 
 Each Redis node has its own data volume:
 
@@ -161,9 +218,15 @@ Each Redis node has its own data volume:
 - `redis_node_5_data`
 - `redis_node_6_data`
 
+### Single Instance Mode
+
+Single Redis instance uses one data volume:
+
+- `redis_data`
+
 Data is automatically persisted to these volumes and will not be lost even if containers restart.
 
-## Failover
+## Failover (Cluster Mode Only)
 
 Redis cluster supports automatic failover:
 
@@ -173,10 +236,16 @@ Redis cluster supports automatic failover:
 
 ## Important Notes
 
+### Cluster Mode
+
 1. On first startup, the `cluster-init` service will automatically create the cluster
 2. If the cluster already exists, `cluster-init` will detect it and skip the creation step
 3. The cluster will only be created after all nodes are healthy
 4. Redis Commander will start after the cluster is successfully created
+
+### Both Modes
+
+- `docker-compose.yaml` is gitignored — use the symlink approach described in [Quick Start](#quick-start) to select your deployment mode.
 
 ## Troubleshooting
 
@@ -203,7 +272,7 @@ docker compose logs redis-commander
 docker compose ps redis-commander
 ```
 
-### Node Cannot Start
+### Node Cannot Start (Cluster Mode)
 
 ```bash
 # Check node logs
