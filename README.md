@@ -92,7 +92,7 @@ docker compose up -d
 
 ```bash
 # Cluster mode: check cluster initialization status
-docker compose logs -f cluster-init
+docker compose logs -f redis-cluster-init
 
 # Single mode: check if Redis is running
 docker compose logs -f redis
@@ -238,8 +238,8 @@ Redis cluster supports automatic failover:
 
 ### Cluster Mode
 
-1. On first startup, the `cluster-init` service will automatically create the cluster
-2. If the cluster already exists, `cluster-init` will detect it and skip the creation step
+1. On first startup, the `redis-cluster-init` service will automatically create the cluster
+2. If the cluster already exists, `redis-cluster-init` will detect it and skip the creation step
 3. The cluster will only be created after all nodes are healthy
 4. Redis Commander will start after the cluster is successfully created
 
@@ -253,13 +253,13 @@ Redis cluster supports automatic failover:
 
 ```bash
 # Check initialization logs
-docker compose logs cluster-init
+docker compose logs redis-cluster-init
 
 # Check if all nodes are healthy
 docker compose ps
 
 # Reinitialize the cluster
-docker compose restart cluster-init
+docker compose restart redis-cluster-init
 ```
 
 ### Cannot Connect to Redis Commander
