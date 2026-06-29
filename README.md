@@ -156,37 +156,39 @@ All configurations can be customized through the `.env` file. Refer to the `.env
 
 ## Common Commands
 
+The commands below use the default Redis ports. If you customize `REDIS_PORT_1` or `REDIS_PORT`, replace `7001` or `6379` with your configured value.
+
 ### Connect to Redis (Cluster Mode)
 
 ```bash
 # Connect to node 1
-docker exec -it redis-redis-node-1-1 redis-cli
+docker compose exec redis-node-1 redis-cli -p 7001
 
 # Connect to node 1 and view cluster info
-docker exec -it redis-redis-node-1-1 redis-cli cluster info
+docker compose exec redis-node-1 redis-cli -p 7001 cluster info
 
 # View cluster nodes
-docker exec -it redis-redis-node-1-1 redis-cli cluster nodes
+docker compose exec redis-node-1 redis-cli -p 7001 cluster nodes
 ```
 
 ### Connect to Redis (Single Instance Mode)
 
 ```bash
 # Connect to Redis
-docker exec -it redis-redis-1 redis-cli
+docker compose exec redis redis-cli -p 6379
 ```
 
 ### Test the Cluster (Cluster Mode)
 
 ```bash
 # Set key-value
-docker exec -it redis-redis-node-1-1 redis-cli -c set mykey "Hello Redis Cluster"
+docker compose exec redis-node-1 redis-cli -c -p 7001 set mykey "Hello Redis Cluster"
 
 # Get key-value
-docker exec -it redis-redis-node-1-1 redis-cli -c get mykey
+docker compose exec redis-node-1 redis-cli -c -p 7001 get mykey
 
 # Check which slot the key is in
-docker exec -it redis-redis-node-1-1 redis-cli cluster keyslot mykey
+docker compose exec redis-node-1 redis-cli -p 7001 cluster keyslot mykey
 ```
 
 ### Monitoring
